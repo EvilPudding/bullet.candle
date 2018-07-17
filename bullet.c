@@ -7,13 +7,6 @@
 #include <PhysicsClientC_API.h>
 #include <PhysicsDirectC_API.h>
 #include <SharedMemoryInProcessPhysicsC_API.h>
-#ifdef BT_ENABLE_ENET
-#include <PhysicsClientUDP_C_API.h>
-#endif  //BT_ENABLE_ENET
-
-#ifdef BT_ENABLE_CLSOCKET
-#include <PhysicsClientTCP_C_API.h>
-#endif  //BT_ENABLE_CLSOCKET
 
 #define MAX_PHYSICS_CLIENTS 1024
 static b3PhysicsClientHandle sPhysicsClients1[MAX_PHYSICS_CLIENTS] = {0};
@@ -48,7 +41,10 @@ static b3PhysicsClientHandle getPhysicsClient(int physicsClientId)
 	return 0;
 }
 
-
+void *c_bullet_sm(c_bullet_t *self)
+{
+	return (void*)getPhysicsClient(0);
+}
 
 
 // Step through one timestep of the simulation
@@ -1286,7 +1282,8 @@ int bullet_getBaseVelocity(int bodyUniqueId, d3_t *baseLinearVelocity, d3_t *bas
 // values for the base link of your object
 // Object is retrieved based on body index, which is the order
 // the object was loaded into the simulation (0-based)
-static int bullet_getBasePositionAndOrientation(int bodyUniqueId, d3_t *basePosition, d4_t *baseOrientation, int physicsClientId)
+int bullet_getBasePositionAndOrientation(int bodyUniqueId, d3_t *basePosition,
+		d4_t *baseOrientation, int physicsClientId)
 {
 	b3PhysicsClientHandle sm = getPhysicsClient(physicsClientId);
 
@@ -1320,13 +1317,6 @@ static int bullet_getBasePositionAndOrientation(int bodyUniqueId, d3_t *basePosi
 		0 /*root_local_inertial_frame*/, &actualStateQ,
 		0 /* actual_state_q_dot */, 0 /* joint_reaction_forces */);
 
-	// printf("joint reaction forces=");
-	// for (i=0; i < (sizeof(jointReactionForces)/sizeof(double)); i++) {
-	//   printf("%f ", jointReactionForces[i]);
-	// }
-	// now, position x,y,z = actualStateQ[0],actualStateQ[1],actualStateQ[2]
-	// and orientation x,y,z,w =
-	// actualStateQ[3],actualStateQ[4],actualStateQ[5],actualStateQ[6]
 	basePosition->x = actualStateQ[0];
 	basePosition->y = actualStateQ[1];
 	basePosition->z = actualStateQ[2];
@@ -1542,7 +1532,7 @@ void bullet_resetBaseVelocity(int objectUniqueId, d3_t *linearVelocity, d3_t *an
 
 // Reset the position and orientation of the base/root link, position [x,y,z]
 // and orientation quaternion [x,y,z,w]
-static void bullet_resetBasePositionAndOrientation(int bodyUniqueId, d3_t pos, d4_t orn, int physicsClientId)
+void bullet_resetBasePositionAndOrientation(int bodyUniqueId, d3_t pos, d4_t orn, int physicsClientId)
 {
 	b3PhysicsClientHandle sm = getPhysicsClient(physicsClientId);
 
@@ -2715,24 +2705,12 @@ int test(int argc, const char *argv[])
 	int c2 = bullet_createCollisionShape(GEOM_SPHERE, 0.5f, d3(0,0,0), -1, NULL, d3(1,1,1),
 			d3(0,0,0), 0, d3(0,0,0), d4(0,0,0,1), 0);
 
-	/* printf("%d\n", bullet_getNumBodies(0)); */
-
 	bullet_createMultiBody( 0, c1, -1,
 			d3(0, 0, 0), d4(0,0,0,1), d3(0, 0, 0), d4(0,0,0,1), 0, NULL, NULL, NULL,
 			NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 0);
 	bullet_createMultiBody( 1, c2, -1,
 			d3(0, 0, 1), d4(0,0,0,1), d3(0, 0, 0), d4(0,0,0,1), 0, NULL, NULL, NULL,
 			NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 0);
-
-	d3_t p = d3(-1, -1, -1);
-	d4_t q = d4(-1, -1, -1, -1);
-
-	for(int i = 0; i < 10000; i++)
-	{
-		bullet_stepSimulation(0);
-		bullet_getBasePositionAndOrientation(1, &p, &q, 0);
-		d3_print(p);
-	}
 
 	return 0;
 }
@@ -2742,13 +2720,14 @@ void c_bullet_init(c_bullet_t *self)
 	bullet_connectPhysicsServer(eCONNECT_DIRECT, SHARED_MEMORY_KEY,
 			"localhost", -1);
 	self->time_scale = 1.0f;
-	bullet_setGravity(d3(0, 0, -10), 0);
-	bullet_setRealTimeSimulation(1, 0);
+	bullet_setGravity(d3(0, -10, 0), 0);
+	/* bullet_setRealTimeSimulation(1, 0); */
 }
 
 c_bullet_t *c_bullet_new()
 {
 	c_bullet_t *self = component_new("bullet");
+	self->running = 1;
 	return self;
 }
 
@@ -2756,8 +2735,14 @@ int c_bullet_update(c_bullet_t *self, float *dt)
 {
 	if(self->running && bullet_isConnected(0))
 	{
+		int i;
 		bullet_setTimeStep(*dt * self->time_scale, 0);
 		bullet_stepSimulation(0);
+		/* d3_t p; */
+		/* d4_t q; */
+		/* for(i = 0; i < bullet_getNumBodies(0); i++) */
+		/* { */
+		/* } */
 	}
 }
 
