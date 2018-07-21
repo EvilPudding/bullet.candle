@@ -20,7 +20,7 @@ CFLAGS_DEB = $(CFLAGS) -g3
 ##############################################################################
 
 all: $(DIR)/export.a
-	echo $(DEPS) > $(DIR)/deps
+	echo -n $(DEPS) > $(DIR)/deps
 
 $(DIR)/export.a: init $(OBJS_REL)
 	$(AR) rs build/export.a $(OBJS_REL)
@@ -31,7 +31,7 @@ $(DIR)/%.o: %.c
 ##############################################################################
 
 debug: $(DIR)/export_debug.a
-	echo $(DEPS) > $(DIR)/deps
+	echo -n $(DEPS) > $(DIR)/deps
 
 $(DIR)/export_debug.a: init $(OBJS_DEB)
 	$(AR) rs build/export_debug.a $(OBJS_DEB)
