@@ -1,7 +1,7 @@
 #ifndef PHYSICS_H
 #define PHYSICS_H
 
-#include <ecm.h>
+#include <ecs/ecm.h>
 
 typedef float(*collider_cb)(c_t *self, vec3_t pos);
 typedef float(*velocity_cb)(c_t *self, vec3_t pos);

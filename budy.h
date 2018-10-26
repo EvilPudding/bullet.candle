@@ -1,7 +1,7 @@
 #ifndef BUDY_H
 #define BUDY_H
 
-#include <ecm.h>
+#include <ecs/ecm.h>
 
 typedef struct
 {
