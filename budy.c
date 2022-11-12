@@ -156,11 +156,11 @@ int c_budy_update(c_budy_t *self, float *dt)
 	return CONTINUE;
 }
 
-REG()
+void ct_budy(ct_t *self)
 {
-	ct_t *ct = ct_new("budy", sizeof(c_budy_t), c_budy_init, NULL, 1,
-			ref("spacial"));
-
+	ct_init(self, "budy", sizeof(c_budy_t), c_budy_init));
+	ct_set_init(self, (init_cb)c_budy_init);
+	ct_add_dependency(self, ct_spatial);
 	ct_listener(ct, WORLD, sig("world_update"), c_budy_update);
 }
 

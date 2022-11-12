@@ -2726,7 +2726,7 @@ void c_bullet_init(c_bullet_t *self)
 
 c_bullet_t *c_bullet_new()
 {
-	c_bullet_t *self = component_new("bullet");
+	c_bullet_t *self = component_new(ct_bullet);
 	self->running = 1;
 	return self;
 }
@@ -2751,14 +2751,13 @@ int c_bullet_menu(c_bullet_t *self, void *ctx)
 	return CONTINUE;
 }
 
-REG()
+void ct_bullet(ct_t *self)
 {
-	ct_t *ct = ct_new("bullet", sizeof(c_bullet_t), c_bullet_init, NULL, 0);
+	ct_init(self, "bullet", sizeof(c_bullet_t));
+	ct_set_init(self, (init_cb)c_bullet_init);
 
-	ct_listener(ct, WORLD, sig("world_update"), c_bullet_update);
+	ct_add_listener(ct, WORLD, 0, ref("world_update"), c_bullet_update);
 
-	ct_listener(ct, WORLD, sig("component_menu"), c_bullet_menu);
-
-	signal_init(sig("collider_callback"), 0);
+	ct_add_listener(ct, WORLD, 0, ref("component_menu"), c_bullet_menu);
 }
 

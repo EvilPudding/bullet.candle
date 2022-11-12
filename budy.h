@@ -1,7 +1,7 @@
 #ifndef BUDY_H
 #define BUDY_H
 
-#include <ecs/ecm.h>
+#include "../candle/ecs/ecm.h"
 
 typedef struct
 {
@@ -13,9 +13,7 @@ typedef struct
 	int update_id;
 } c_budy_t;
 
-
-
-DEF_CASTER("budy", c_budy, c_budy_t)
+DEF_CASTER(ct_budy, c_budy, c_budy_t)
 
 c_budy_t *c_budy_sphere_new(float mass, float radius);
 c_budy_t *c_budy_box_new(float mass, vec3_t half_extents);
